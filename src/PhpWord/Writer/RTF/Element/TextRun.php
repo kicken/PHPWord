@@ -31,12 +31,23 @@ class TextRun extends AbstractElement
      */
     public function write()
     {
-        $writer = new Container($this->parentWriter, $this->element);
+        $this->getStyles();
 
         $content = '';
         $content .= $this->writeOpening();
         $content .= '{';
-        $content .= $writer->write();
+
+        $elements = $this->element->getElements();
+        foreach ($elements as $element) {
+            $elementClass = get_class($element);
+            $writerClass = str_replace('PhpOffice\\PhpWord\\Element', 'PhpOffice\\PhpWord\\Writer\\RTF\\Element', $elementClass);
+            if (class_exists($writerClass)) {
+                /** @var \PhpOffice\PhpWord\Writer\HTML\Element\AbstractElement $writer Type hint */
+                $writer = new $writerClass($this->parentWriter, $element, true);
+                $content .= $writer->write();
+            }
+        }
+
         $content .= '}';
         $content .= $this->writeClosing();
 
